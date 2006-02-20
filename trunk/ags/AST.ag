@@ -1,0 +1,153 @@
+
+DATA Root
+ |Root Module
+
+DATA Module
+ |ModuleDB ModDecl ModBody 
+ |ModuleB ModBody 
+
+DATA ModDecl 
+ |ModDecl String 
+
+DATA ModBody
+ |ModBodyDB DataDeclaration ModBody 
+ |ModBodyFB FuncTyDecl ModBody
+ |ModBodyS 
+
+DATA DataDeclaration
+ |ConsDataDeclaration a:String b:String StringList
+
+DATA TypeFunction
+ |TypeFunction String Typee TypeList
+
+DATA FunctionDeclaration
+ |FunctionDeclaration String StringList Expresion 
+
+DATA Expresion
+ |ExpLit Literal
+ |ExpLambda  String StringList Expresion
+ |ExpLet FunctionDeclaration FunctionDeclarationList Expresion
+ |ExpCase String LitExp LitExpList
+ |ExpComp Literal Operator  Expresion
+ |ExpFunction String ParamList 
+
+TYPE StringList = [String]
+TYPE TypeList = [Typee]
+TYPE FunctionDeclarationList = [FunctionDeclaration]
+TYPE ParamList = [Param]
+TYPE LitExpList = [LitExp]
+TYPE LitExp = (lit:Literal,exp:Expresion)
+TYPE FuncTyDecl = (tyfun:TypeFunction,fundecl:FunctionDeclaration)
+
+DATA Param
+ |ParamIM String
+ |ParamLit Literal 
+
+DATA Typee
+ |TypeIMe String
+ |TypeIMa String
+ |TypeBas String 
+
+DATA Literal
+ |LitString String
+ |LitBool String
+ |LitInt String
+ |LitChar String 
+
+DATA Operator
+ |Operator String 
+
+DERIVING * : Show
+
+--{
+--main = sem_Root ejemplo
+
+--ejemplo = Root_Root 
+--}
+
+-- Devuelve todos los identificadores mayores usados los nombres de los datas
+
+ATTR Root [listadatas:{[String]}||verificar:{IO()} datas:{[String]}]
+ATTR Module ModBody DataDeclaration FuncTyDecl TypeFunction Typee TypeList [listadatas:{[String]}||verificar:{Bool} datas:{[String]} ]
+
+SEM Root 
+ |Root lhs.datas = {["String","Int","Bool","Char"] ++ @module.datas}
+ |Root loc.datas = {["String","Int","Bool","Char"] ++ @module.datas} 
+
+SEM Root
+ |Root module.listadatas = @loc.datas
+
+SEM Root 
+|Root lhs.verificar = putStrLn (show @module.verificar)
+
+SEM Module 
+ |ModuleDB lhs.datas = @modBody.datas
+ |ModuleB lhs.datas = @modBody.datas
+ 
+SEM Module
+ |ModuleDB modBody.listadatas = @lhs.listadatas
+ |ModuleB modBody.listadatas = @lhs.listadatas
+
+SEM Module
+ |ModuleDB lhs.verificar = @modBody.verificar 
+ |ModuleB lhs.verificar = @modBody.verificar 
+
+SEM ModBody
+ |ModBodyDB lhs.datas = @dataDeclaration.datas ++ @modBody.datas
+ |ModBodyFB lhs.datas = @modBody.datas
+ |ModBodyS lhs.datas = []
+
+SEM ModBody 
+ |ModBodyFB funcTyDecl.listadatas = @lhs.listadatas 
+ |ModBodyS lhs.verificar = True
+
+SEM ModBody
+ |ModBodyFB lhs.verificar = @funcTyDecl.verificar && @modBody.verificar
+
+SEM DataDeclaration
+ |ConsDataDeclaration lhs.datas = [@a]
+
+SEM DataDeclaration
+ |ConsDataDeclaration lhs.verificar = True
+
+SEM FuncTyDecl 
+ |Tuple tyfun.listadatas = @lhs.listadatas
+ 
+SEM FuncTyDecl
+ |Tuple lhs.verificar = @tyfun.verificar
+
+SEM TypeFunction
+ |TypeFunction typee.listadatas = @lhs.listadatas
+ |TypeFunction typeList.listadatas = @lhs.listadatas
+
+SEM TypeFunction 
+ |TypeFunction lhs.verificar = @typee.verificar && @typeList.verificar
+
+SEM Typee
+ |TypeIMe lhs.datas = []
+ |TypeIMa lhs.datas = []
+ |TypeBas lhs.datas = []
+
+SEM Typee
+ |TypeIMe lhs.verificar = if (elem @string @lhs.listadatas) then True else error ("Tipo de dato" ++ @string ++ "no definido")
+ |TypeIMa lhs.verificar = if (elem @string @lhs.listadatas) then True else error ("Tipo de dato" ++ @string ++ "no definido")
+ |TypeBas lhs.verificar = if (elem @string @lhs.listadatas) then True else error ("Tipo de dato" ++ @string ++ "no definido")
+
+SEM TypeList
+ |Cons lhs.verificar = @hd.verificar && @tl.verificar
+ |Nil lhs.verificar = True
+
+SEM TypeList
+ |Cons lhs.datas = []
+ |Nil lhs.datas = []
+
+  
+   
+
+ 
+
+
+
+
+
+  
