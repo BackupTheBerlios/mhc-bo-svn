@@ -80,6 +80,7 @@ list x xs  =  x:xs
 
 main = do compilar "P2.hs"
 
+
 compilar as  = do 
 		archivo <- readFile as
 		out <- parseIO pRoot (scanner archivo 1 0)
