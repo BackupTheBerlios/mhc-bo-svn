@@ -1,5 +1,5 @@
 
-module Scanner(scanner) where
+module Scanner where
 import Char
 import UU.Parsing
 
