@@ -5,7 +5,12 @@ import UU.Parsing
 
 --- Definicion de los datas para Simbolos (Tokens) --
 
-data TypeToken = Operator | KeyWord | Space | Integer | Bool | Id deriving (Eq,Ord,Show)
+data TypeToken = Operator 
+				| KeyWord 
+				| Space 
+				| Integer 
+				| Bool 
+				| Id deriving (Eq,Ord,Show)
 
 data Simbolo = Simbolo TypeToken String deriving Show
 
@@ -24,24 +29,40 @@ instance Ord Simbolo where
    compare (Simbolo tok1 _) (Simbolo tok2 _) = compare tok1 tok2
 
 --- Definicion del Scanner ---
+--- Scanner principal ---
 scanner :: String -> [Simbolo]
 
 scanner file = scanner1 file 1 
 
+---Scanner que recibe como parametro un int que cuenta las filas ---
 scanner1 :: String -> Int -> [Simbolo]
 
 scanner1 [] _ = []
 scanner1 a@(chr:str) fila | isUpper chr = getKeyWord [chr] str fila
 		  				  | isLower chr = (Simbolo Id [chr]) : scanner1 str fila
 				   		  | isKeyOp [chr] =  getKeyOp a fila
-                     	  | isSpace chr = if chr == '\n' then (Simbolo Space [chr]) : scanner1 str (fila+1) else (Simbolo Space [chr] ): scanner1 str fila
+                     	  | isSpace chr = if chr == '\n' then
+                     	  				 (Simbolo Space [chr]) : scanner1 str (fila+1) 
+                     	  				 else (Simbolo Space [chr] ): scanner1 str fila
 		             	  | isDigit chr = getNumber [chr] str fila
-		             	  | otherwise = error ("Simbolo no reconocido " ++ [chr])
+		             	  | otherwise = error ("Simbolo no reconocido"++[chr]++" en la linea "++show fila)
 
-getKeyWord str1 [] fila = if isKeyWord str1 then [(Simbolo KeyWord str1)] else if elem str1 keyBool then [(Simbolo Bool str1)] else error ("Simbolo no reconocido " ++ str1)
+--- Funcion que obtiene las palabras reservadas del lenguaje ---
+
+getKeyWord str1 [] fila = if isKeyWord str1 then [(Simbolo KeyWord str1)] else 
+							if elem str1 keyBool then [(Simbolo Bool str1)] else 
+								error ("Simbolo no reconocido"++str1++" en la linea "++show fila)
 getKeyWord str1 a@(chr:str) fila | isUpper chr = getKeyWord (str1++[chr]) str fila
-			    				 | isSpace chr = if isKeyWord str1 then (Simbolo KeyWord str1) : (Simbolo Space [chr]) : scanner1 str fila else if elem str1 keyBool then (Simbolo Bool str1):(Simbolo Space [chr]):scanner1 str fila else error "Simbolo no reconocido"
-			 				     | otherwise = if isKeyWord str1 then (Simbolo KeyWord str1) : scanner1 str fila else if elem str1 keyBool then (Simbolo Bool str1): scanner1 str fila else error "Simbolo no reconocido"
+			    				 | isSpace chr = if isKeyWord str1 then 
+			    				 					(Simbolo KeyWord str1) : (Simbolo Space [chr]) : 
+			    				 					scanner1 str fila else if elem str1 keyBool then
+			    				 					 (Simbolo Bool str1):(Simbolo Space [chr]):
+			    				 					 scanner1 str fila else error ("Simbolo no reconocido"++str1++" en la linea "++show fila)
+			 				     | otherwise = if isKeyWord str1 then (Simbolo KeyWord str1) : scanner1 str fila else
+			 				     				 if elem str1 keyBool then (Simbolo Bool str1): scanner1 str fila else 
+			 				     				 	error ("Simbolo no reconocido"++str1++" en la linea "++show fila)
+
+--- Funcion que obtiene los operadores del lenguaje ---
 
 getKeyOp [] fila = []
 getKeyOp [a] fila = [(Simbolo Operator [a])]
@@ -49,7 +70,8 @@ getKeyOp (a:b:as) fila | elem  (a:[b]) keyOps = (Simbolo Operator (a:[b])) : sca
 		  		       | otherwise = (Simbolo Operator [a]) : scanner1 (b:as) fila
 
 getNumber a [] fila = [(Simbolo Integer a )] 
-getNumber a [b] fila = if isDigit b then [(Simbolo Integer (a ++ [b]))] else (Simbolo Integer a) : scanner1 [b] fila
+getNumber a [b] fila = if isDigit b then [(Simbolo Integer (a ++ [b]))] 
+						else (Simbolo Integer a) : scanner1 [b] fila
 getNumber a (b:as) fila | isDigit b = getNumber (a ++ [b]) as fila
 		   			    | otherwise = (Simbolo Integer a) : scanner1 (b:as) fila
 
@@ -59,4 +81,5 @@ isKeyOp str = elem str keyOps
 
 keyBool = ["TRUE","FALSE"]
 keyWords = ["LET" , "IN" , "IF" , "THEN" , "ELSE"]
-keyOps = ["+" , "-" , "*" , "\\" , "/" , "<" , ">" , "=", "," , ";" , ">=" , "<=" , "==", "&&" , "||" , "->" , "(" , ")" ]
+keyOps = ["+" , "-" , "*" , "\\" , "/" , "<" , ">" , "=", "," , 
+			";" , ">=" , "<=" , "==", "&&" , "||" , "->" , "(" , ")" ]
