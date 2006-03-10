@@ -81,5 +81,5 @@ main = do compilar "P2.hs"
 
 compilar as  = do 
 		archivo <- readFile as
-		out <- parseIO pRoot (scanner archivo 1 0)
+		out <- parseIO pRoot (scanner1 archivo 1 0)
 		snd (out [])

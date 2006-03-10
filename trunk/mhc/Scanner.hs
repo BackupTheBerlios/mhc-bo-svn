@@ -22,54 +22,54 @@ instance Ord Simbolo where
 	
 
 
-scanner []  _ _ = []
-scanner (a:as) nf nc | a == '\"' = scannerCadena as nf (nc+1) []
+scanner1 []  _ _ = []
+scanner1 (a:as) nf nc | a == '\"' = scannerCadena as nf (nc+1) []
 		     | a == '\'' = scannerCaracter as nf (nc+1) 
 		     | isDigit a = scannerEntero (a:as) nf (nc) []
 		     | isLower a = scannerMenor (a:as) nf (nc) []
 		     | isUpper a = scannerMayor (a:as) nf (nc) []
 		     | isOp a = scannerOperador (a:as) nf nc
-		     | esEspacio a = (scanner as nf (nc+1))
-		     | isNl a =  (Simbolo NuevaLinea [a] nf nc):(scanner as (nf+1) 1)
+		     | esEspacio a = (scanner1 as nf (nc+1))
+		     | isNl a =  (Simbolo NuevaLinea [a] nf nc):(scanner1 as (nf+1) 1)
 		     | otherwise = error ("Simbolo "++ [a] ++ " no reconocido " ++ "en la linea " ++ (show nf)++ "y columna "++ show nc)
 
 
 scannerCadena :: String -> Int -> Int -> String -> [Simbolo]
-scannerCadena (a:as) nf nc c | a == '\"' = (Simbolo Cadena c nf nc):(scanner as nf (nc+1))
+scannerCadena (a:as) nf nc c | a == '\"' = (Simbolo Cadena c nf nc):(scanner1 as nf (nc+1))
 			     | a == '\n' = scannerCadena as (nf+1) (nc+1) (c++[a])
 			     | isAscii a = scannerCadena as nf (nc+1) (c++[a])
 
 scannerCaracter :: String -> Int -> Int -> [Simbolo]
-scannerCaracter (a:x:as) nc nf | isAlpha a && x == '\'' = (Simbolo Caracter [a] nc nf): scanner as nf (nc+1)
+scannerCaracter (a:x:as) nc nf | isAlpha a && x == '\'' = (Simbolo Caracter [a] nc nf): scanner1 as nf (nc+1)
 
 scannerEntero :: String -> Int -> Int -> String -> [Simbolo]
 scannerEntero []  nf nc c = [Simbolo Entero c nf nc]
 scannerEntero (a:as) nf nc c | isDigit a = scannerEntero as nf (nc+1) (c++[a])
-			     | otherwise = (Simbolo Entero c nf nc): scanner (a:as) nf nc  
+			     | otherwise = (Simbolo Entero c nf nc): scanner1 (a:as) nf nc  
 
 scannerMenor :: String -> Int -> Int -> String -> [Simbolo]
 scannerMenor []  nf nc c = if perteneceReserv c then [ Simbolo Reservada c nf nc] else [Simbolo IdMenor c nf nc]
 scannerMenor (a:as) nf nc c | isAlpha a = scannerMenor as nf (nc+1) (c++[a])
 		       	    | isDigit a = scannerMayor as nf (nc+1) (c++[a])
-			    | otherwise = (if perteneceReserv c then Simbolo Reservada c nf nc else Simbolo IdMenor c nf nc):scanner (a:as) nf nc 
+			    | otherwise = (if perteneceReserv c then Simbolo Reservada c nf nc else Simbolo IdMenor c nf nc):scanner1 (a:as) nf nc 
 
 scannerMayor :: String -> Int -> Int -> String -> [Simbolo]
 scannerMayor [] nf nc c = if perteneceBasico c then [Simbolo TipoBasico c nf nc] else if esBoleano c then [Simbolo Boleano c nf nc]  else [Simbolo IdMayor c nf nc]
 scannerMayor (a:as) nf nc c | isAlpha a = scannerMayor as nf (nc+1) (c++[a])
 			| isDigit a = scannerMayor as nf (nc+1) (c++[a])
-              	        | otherwise = (if perteneceBasico c then Simbolo TipoBasico c nf nc else if esBoleano c then Simbolo Boleano c nf nc  else Simbolo IdMayor c nf nc):scanner (a:as) nf nc 
+              	        | otherwise = (if perteneceBasico c then Simbolo TipoBasico c nf nc else if esBoleano c then Simbolo Boleano c nf nc  else Simbolo IdMayor c nf nc):scanner1 (a:as) nf nc 
 
 scannerOperador :: String -> Int -> Int -> [Simbolo]
 scannerOperador [a] nf nc | isOp a = [Simbolo Operador [a] nf nc]
-		          | otherwise = scanner [a] nf nc 
-scannerOperador (a:b:as) nf nc | isOp a && isOp b  && a == b && (a == '+' || a == '&' || a == '=' || a == '|') = (Simbolo Operador (a:b:[]) nf nc):(scanner as nf (nc+2))
-			       | isOp a && isOp b && a == b && a == ':' = (Simbolo OperadorEspecial (a:b:[]) nf nc):(scanner as nf (nc+2))
-			       | a == '-' && b == '>' = (Simbolo OperadorEspecial (a:b:[]) nf nc):(scanner as nf (nc+2))
-			       | (a == '>' && b =='=' )||(a == '<' && b =='=') = (Simbolo Operador (a:b:[]) nf nc):(scanner as nf (nc+2))
-			       | a == '\\' && b == '=' = (Simbolo Operador (a:b:[]) nf nc):(scanner as nf (nc+2))
-			       | a == '=' || a == '|' || a == '(' || a == ')' = (Simbolo OperadorEspecial (a:[]) nf nc):(scanner (b:as) nf (nc+1))
-			       | isOp a = (Simbolo Operador (a:[]) nf nc):(scanner (b:as) nf nc)
-			       | otherwise = scanner (a:b:as) nf nc
+		          | otherwise = scanner1 [a] nf nc 
+scannerOperador (a:b:as) nf nc | isOp a && isOp b  && a == b && (a == '+' || a == '&' || a == '=' || a == '|') = (Simbolo Operador (a:b:[]) nf nc):(scanner1 as nf (nc+2))
+			       | isOp a && isOp b && a == b && a == ':' = (Simbolo OperadorEspecial (a:b:[]) nf nc):(scanner1 as nf (nc+2))
+			       | a == '-' && b == '>' = (Simbolo OperadorEspecial (a:b:[]) nf nc):(scanner1 as nf (nc+2))
+			       | (a == '>' && b =='=' )||(a == '<' && b =='=') = (Simbolo Operador (a:b:[]) nf nc):(scanner1 as nf (nc+2))
+			       | a == '\\' && b == '=' = (Simbolo Operador (a:b:[]) nf nc):(scanner1 as nf (nc+2))
+			       | a == '=' || a == '|' || a == '(' || a == ')' = (Simbolo OperadorEspecial (a:[]) nf nc):(scanner1 (b:as) nf (nc+1))
+			       | isOp a = (Simbolo Operador (a:[]) nf nc):(scanner1 (b:as) nf nc)
+			       | otherwise = scanner1 (a:b:as) nf nc
      			
 isOp a = elem a simbolos
        where 
