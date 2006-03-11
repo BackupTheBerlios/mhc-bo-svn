@@ -1,0 +1,65 @@
+-- Simple Functional Language
+-- ==========================
+
+-- CFG
+-- ===
+
+<prog> ::= <eexpr> ;
+
+<eexpr> ::= <lexpr> | <aexpr> | <bexpr> -- external
+
+<rexpr> ::= <aexpr> | <bexpr> | <apl> -- result
+
+<iexpr> ::= <aexpr> | <bexpr> | <apl> |
+            <cexpr> | <fexpr> -- internal
+
+-- application
+
+<apl> ::= <id> ( <args> )
+
+<args> ::= <arg> | <arg> <args>
+
+<arg> ::= <bexpr> | <cexpr>
+
+-- functional expression
+
+<fexpr> ::= \ <ids> -> <iexpr>
+
+-- boolean expression
+
+<bexpr> ::= <relexpr> | bconst | <id> |
+            NOT <bexpr> | <bexpr> AND <bexpr> | <bexpr> OR <bexpr>
+
+<bconst> ::= TRUE | FALSE
+
+-- relational expression
+
+<relexpr> ::= <aexpr> == <aexpr> | <aexpr> <= <aexpr>
+
+-- conditional expression
+
+<cexpr> ::= IF <bexpr> THEN <iexpr> ELSE <iexpr>
+
+--let expression
+
+<lexpr> ::= LET <decls> IN <rexpr>
+
+<decls> ::= <decl> | <decl> , <decls>
+
+<decl> ::= <id> = <iexpr>
+
+-- arithmetic expression
+
+<aexpr> ::= <term> | <aexpr> + <term> 
+
+<term> ::= <factor> | <term> * <factor>
+
+<factor> ::= (<aexpr>) | <aconst> | <id> | <apl>
+
+<aconst> ::= <dig> | <dig> <aconst>
+
+<dig> ::= 0 | ... | 9
+
+<id> ::= a | ... | z
+
+<ids> ::= <id> | <id> <ids>
