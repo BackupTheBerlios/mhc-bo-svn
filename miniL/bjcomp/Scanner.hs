@@ -1,5 +1,5 @@
 
-module Scanner where
+module Scanner (scanner,TypeToken (..), Simbolo (..)) where
 import Char
 import UU.Parsing
 
@@ -8,8 +8,8 @@ import UU.Parsing
 data TypeToken = Operator 
 				| KeyWord 
 				| Space 
-				| Integer 
-				| Bool 
+				| Integr 
+				| Boolean 
 				| Id deriving (Eq,Ord,Show)
 
 data Simbolo = Simbolo TypeToken String deriving Show
@@ -50,16 +50,21 @@ scanner1 a@(chr:str) fila | isUpper chr = getKeyWord [chr] str fila
 --- Funcion que obtiene las palabras reservadas del lenguaje ---
 
 getKeyWord str1 [] fila = if isKeyWord str1 then [(Simbolo KeyWord str1)] else 
-							if elem str1 keyBool then [(Simbolo Bool str1)] else 
+							if elem str1 keyBoolean then [(Simbolo Boolean str1)] else 
 								error ("Simbolo no reconocido"++str1++" en la linea "++show fila)
 getKeyWord str1 a@(chr:str) fila | isUpper chr = getKeyWord (str1++[chr]) str fila
 			    				 | isSpace chr = if isKeyWord str1 then 
 			    				 					(Simbolo KeyWord str1) : (Simbolo Space [chr]) : 
-			    				 					scanner1 str fila else if elem str1 keyBool then
-			    				 					 (Simbolo Bool str1):(Simbolo Space [chr]):
+			    				 					scanner1 str fila else if elem str1 keyBoolean then
+			    				 					 (Simbolo Boolean str1):(Simbolo Space [chr]):
+			    				 					 scanner1 str fila else error ("Simbolo no reconocido"++str1++" en la linea "++show fila)
+			 				     | chr == ';' =  if isKeyWord str1 then 
+			    				 					(Simbolo KeyWord str1) : (Simbolo Operator [chr]) : 
+			    				 					scanner1 str fila else if elem str1 keyBoolean then
+			    				 					 (Simbolo Boolean str1):(Simbolo Operator [chr]):
 			    				 					 scanner1 str fila else error ("Simbolo no reconocido"++str1++" en la linea "++show fila)
 			 				     | otherwise = if isKeyWord str1 then (Simbolo KeyWord str1) : scanner1 str fila else
-			 				     				 if elem str1 keyBool then (Simbolo Bool str1): scanner1 str fila else 
+			 				     				 if elem str1 keyBoolean then (Simbolo Boolean str1): scanner1 str fila else 
 			 				     				 	error ("Simbolo no reconocido"++str1++" en la linea "++show fila)
 
 --- Funcion que obtiene los operadores del lenguaje ---
@@ -69,17 +74,17 @@ getKeyOp [a] fila = [(Simbolo Operator [a])]
 getKeyOp (a:b:as) fila | elem  (a:[b]) keyOps = (Simbolo Operator (a:[b])) : scanner1 as fila
 		  		       | otherwise = (Simbolo Operator [a]) : scanner1 (b:as) fila
 
-getNumber a [] fila = [(Simbolo Integer a )] 
-getNumber a [b] fila = if isDigit b then [(Simbolo Integer (a ++ [b]))] 
-						else (Simbolo Integer a) : scanner1 [b] fila
+getNumber a [] fila = [(Simbolo Integr a )] 
+getNumber a [b] fila = if isDigit b then [(Simbolo Integr (a ++ [b]))] 
+						else (Simbolo Integr a) : scanner1 [b] fila
 getNumber a (b:as) fila | isDigit b = getNumber (a ++ [b]) as fila
-		   			    | otherwise = (Simbolo Integer a) : scanner1 (b:as) fila
+		   			    | otherwise = (Simbolo Integr a) : scanner1 (b:as) fila
 
 isKeyWord str = elem str keyWords 
 
 isKeyOp str = elem str keyOps
 
-keyBool = ["TRUE","FALSE"]
-keyWords = ["LET" , "IN" , "IF" , "THEN" , "ELSE"]
+keyBoolean = ["TRUE","FALSE"]
+keyWords = ["LET" , "IN" , "IF" , "THEN" , "ELSE", "AND", "OR", "NOT"]
 keyOps = ["+" , "-" , "*" , "\\" , "/" , "<" , ">" , "=", "," , 
-			";" , ">=" , "<=" , "==", "&&" , "||" , "->" , "(" , ")" ]
+			";" , ">=" , "<=" , "==", "->" , "(" , ")" ]

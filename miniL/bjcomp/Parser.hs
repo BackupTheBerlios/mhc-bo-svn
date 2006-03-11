@@ -5,10 +5,10 @@ import UU.Parsing
 import Scanner
 import Data.Char
 
-sem_Root :: Int -> IO ()
+sem_Root :: String -> IO ()
 sem_Root = putStr . show . id
-pRoot = sem_Root <$> pAExpr <* pOperator ";" -- <* pSpace 
-	<|> sem_Root <$> pAExpr <* pList  pSpace <* pOperator ";"
+pRoot = sem_Root <$> pIExpr <* pOperator ";" -- <* pSpace 
+	<|> sem_Root <$> pIExpr <* pList  pSpace <* pOperator ";"
 {--
 pPrograma = () <$> pEExpre <* pKeyWord ";"
 
@@ -19,13 +19,13 @@ pEExpre = () <$> pLExpr
 pRExpr = () <$> pAExpr
 	<|> () <$> pBExpr 
 	<|> () <$> pApli
-
-pIExpr = () <$> pAExpr
-        <|> () <$> pBExpr 
-        <|> () <$> pApli
-	<|> () <$> pCExpr
-	<|> () <$> pFExpr
-
+--}
+pIExpr = (\a -> show a) <$> pAExpr
+        <|> (\a -> map toUpper (show a)) <$> pBExpr 
+      --  <|> () <$> pApli
+		<|> (\a -> show a) <$> pCExpr
+		-- <|> (\a -> a) <$> pFExpr
+{--
 -- Application --
 
 pApl = () <$> pId <* pOperator "(" <*> pArgs <* pOperator ")"
@@ -38,53 +38,60 @@ pArg = () <$> pBExpr
 -- Functional expresion --
 
 pFExpr = () <$> pOperator "\\" *> pList pId <* pOpertator "->" <*> pIExpr
-
+--}
 -- Boolean expresion --
 
-pBExpr = () <$> pRELExpr 
-	<|> () <$> pBCons
-	<|> () <$> pId
-	<|> () <$> pKeyWord "NOT"  *> pBExpr
-	<|> () <$> pBExpr <* pKeyWord "AND" <*> pBExpr
-	<|> () <$> pBExpr <*> pKeyWord "OR" <*> pBExpr
+pBExpr = (\a -> a) <$> pBTerm
+	<|> (\a -> a) <$ pKeyWord "NOT"<* pList pSpace <*> pBFactor
+	<|> (\a b -> not a && b) <$ pKeyWord "NOT" <* pList pSpace <*> pBFactor <* pList pSpace <*  pKeyWord "AND" <* pList pSpace <*> pBExpr
+    <|> (\a b -> not a || b) <$ pKeyWord "NOT" <* pList pSpace <*> pBFactor <* pList pSpace <*  pKeyWord "OR" <* pList pSpace <*> pBExpr
+
+
+pBTerm = (\a b -> a && b) <$> pBFactor <* pList pSpace <* pKeyWord "AND" <* pList pSpace <*> pBExpr
+	<|>	(\a b -> a || b) <$> pBFactor <* pList pSpace <* pKeyWord "OR" <* pList pSpace <*> pBExpr
+
+pBFactor = pBConst
+
+-- Extra expresion for Relational and Aritmetic expresion --
+
 
 -- Relational expresion --
 
-pRELExpr = () <$> pAExpr <* pOperator "==" <*> pAExpr 
-	<|>  () <$> pAExpr <* pOPerator "<=" <*> pAExpr
+pRELExpr = (\a b -> (==) a b) <$> pAExpr <* pList pSpace <* pOperator "==" <* pList pSpace <*> pAExpr 
+	<|>  (\a  b -> (<=) a b) <$> pAExpr <* pList pSpace <* pOperator "<=" <* pList pSpace <*> pAExpr
 
 -- Conditional expresion --
 
-pCExpre = () <$ pKewyWord "IF" <*> pBExpr <* pKeyWord "THEN" <*> pIExpr <* pKeyWord "ELSE" <*> pIExpr
+pCExpr = (\a b c -> if a then b else c) <$ pKeyWord "IF" <*> pBExpr <* pKeyWord 
+										"THEN" <*> pIExpr <* pKeyWord "ELSE" <*> pIExpr
 
--- Let expresion -- 
+{-- Let expresion -- 
 
 pLExpr = () <$ pKeyWord "LET" <*> pDecls <* pKeyWord "IN" <*> pRExpr
 
 pDecls = () <$> pList pDecl
 
 pDecl = () <$> pId <* pOperator "=" <*> pIExpr
-
 --}
 
 --Aritmetic expresions --
 
 pAExpr = pTerm 
-	<|> (\a c -> (-) a c) <$> pTerm <* pList pSpace <* pOperator "-" <* pList pSpace <*> pAExpr
+--	<|> (\a c -> (-) a c) <$> pTerm <* pList pSpace <* pOperator "-" <* pList pSpace <*> pAExpr
 	<|> (\a c -> (+) a c) <$> pTerm <* pList pSpace <* pOperator "+" <* pList pSpace <*> pAExpr 
 
 pTerm = pFactor
-	<|> (\a c -> (*) a c) <$> pFactor <* pList pSpace <* pOperator "*" <* pList pSpace <*> pTerm
 	<|> (\a c -> div a c) <$> pFactor <* pList pSpace <* pOperator "/" <* pList pSpace <*> pTerm	
+	<|> (\a c -> (*) a c) <$> pFactor <* pList pSpace <* pOperator "*" <* pList pSpace <*> pTerm
 
 pFactor = pAconst -- <|> pId <|> pApl
 	<|> (\a -> a) <$ pOperator "(" <*> pAExpr <* pOperator ")"
 
 pAconst :: Parser Simbolo Int
-pAconst =  (\(Simbolo Integer str) -> read str) <$> pSym (Simbolo Integer "")
+pAconst =  (\(Simbolo Integr str) -> read str) <$> pSym (Simbolo Integr "")
 
 pBConst :: Parser Simbolo Bool
-pBConst = (\(Simbolo Bool str) -> f str) <$> pSym (Simbolo Bool "")
+pBConst = (\(Simbolo Boolean str) -> f str) <$> pSym (Simbolo Boolean "")
 	where f a = if a == "TRUE" then True else False	
 
 pOperator :: String -> Parser Simbolo String
@@ -115,9 +122,3 @@ g a = do
 h a = do
 	b <- getLine 
 	f (a++b)
-
-compilar as = do
-	archivo <- readFile as
-	out <- parseIO pRoot (scanner archivo)
-	out
-	putStr "\n"
