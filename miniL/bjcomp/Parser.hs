@@ -24,6 +24,7 @@ pIExpr = (\a -> show a) <$> pAExpr
         <|> (\a -> map toUpper (show a)) <$> pBExpr 
       --  <|> () <$> pApli
 		<|> (\a -> show a) <$> pCExpr
+		<|> (\a -> show a) <$> pRELExpr
 		-- <|> (\a -> a) <$> pFExpr
 {--
 -- Application --
@@ -47,7 +48,8 @@ pBExpr = (\a -> a) <$> pBTerm
     <|> (\a b -> not a || b) <$ pKeyWord "NOT" <* pSpaces <*> pBFactor <* pSpaces <*  pKeyWord "OR" <* pSpaces <*> pBExpr
 
 
-pBTerm = (\a b -> a && b) <$> pBFactor <* pSpaces <* pKeyWord "AND" <* pSpaces <*> pBExpr
+pBTerm = (\a -> a) <$> pBFactor
+	<|> (\a b -> a && b) <$> pBFactor <* pSpaces <* pKeyWord "AND" <* pSpaces <*> pBExpr
 	<|>	(\a b -> a || b) <$> pBFactor <* pSpaces <* pKeyWord "OR" <* pSpaces <*> pBExpr
 
 pBFactor = pBConst
