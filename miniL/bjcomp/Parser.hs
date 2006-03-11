@@ -1,5 +1,5 @@
 
-module Parser where
+module Parser (pRoot) where
 
 import UU.Parsing
 import Scanner

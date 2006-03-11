@@ -10,7 +10,8 @@ main = do
 	a <- getLine
 	putStr "$>"
 	f a
-f a = if (head a) == ':' then runCommands (tail a) else (if a /= [] then (if  (last a) == ';' then g a else h a) else h a )
+f a = if (head a) == ':' then runCommands (tail a) else 
+		(if a /= [] then (if  (last a) == ';' then g a else h a) else h a )
 
 g a = do 
 	out <- parseIO pRoot (scanner a)
