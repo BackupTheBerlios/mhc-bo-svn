@@ -42,13 +42,13 @@ pFExpr = () <$> pOperator "\\" *> pList pId <* pOpertator "->" <*> pIExpr
 -- Boolean expresion --
 
 pBExpr = (\a -> a) <$> pBTerm
-	<|> (\a -> a) <$ pKeyWord "NOT"<* pList pSpace <*> pBFactor
-	<|> (\a b -> not a && b) <$ pKeyWord "NOT" <* pList pSpace <*> pBFactor <* pList pSpace <*  pKeyWord "AND" <* pList pSpace <*> pBExpr
-    <|> (\a b -> not a || b) <$ pKeyWord "NOT" <* pList pSpace <*> pBFactor <* pList pSpace <*  pKeyWord "OR" <* pList pSpace <*> pBExpr
+	<|> (\a -> a) <$ pKeyWord "NOT"<* pSpaces <*> pBFactor
+	<|> (\a b -> not a && b) <$ pKeyWord "NOT" <* pSpaces <*> pBFactor <* pSpaces <*  pKeyWord "AND" <* pSpaces <*> pBExpr
+    <|> (\a b -> not a || b) <$ pKeyWord "NOT" <* pSpaces <*> pBFactor <* pSpaces <*  pKeyWord "OR" <* pSpaces <*> pBExpr
 
 
-pBTerm = (\a b -> a && b) <$> pBFactor <* pList pSpace <* pKeyWord "AND" <* pList pSpace <*> pBExpr
-	<|>	(\a b -> a || b) <$> pBFactor <* pList pSpace <* pKeyWord "OR" <* pList pSpace <*> pBExpr
+pBTerm = (\a b -> a && b) <$> pBFactor <* pSpaces <* pKeyWord "AND" <* pSpaces <*> pBExpr
+	<|>	(\a b -> a || b) <$> pBFactor <* pSpaces <* pKeyWord "OR" <* pSpaces <*> pBExpr
 
 pBFactor = pBConst
 
@@ -57,8 +57,8 @@ pBFactor = pBConst
 
 -- Relational expresion --
 
-pRELExpr = (\a b -> (==) a b) <$> pAExpr <* pList pSpace <* pOperator "==" <* pList pSpace <*> pAExpr 
-	<|>  (\a  b -> (<=) a b) <$> pAExpr <* pList pSpace <* pOperator "<=" <* pList pSpace <*> pAExpr
+pRELExpr = (\a b -> (==) a b) <$> pAExpr <* pSpaces <* pOperator "==" <* pSpaces <*> pAExpr 
+	<|>  (\a  b -> (<=) a b) <$> pAExpr <* pSpaces <* pOperator "<=" <* pSpaces <*> pAExpr
 
 -- Conditional expresion --
 
@@ -77,12 +77,12 @@ pDecl = () <$> pId <* pOperator "=" <*> pIExpr
 --Aritmetic expresions --
 
 pAExpr = pTerm 
---	<|> (\a c -> (-) a c) <$> pTerm <* pList pSpace <* pOperator "-" <* pList pSpace <*> pAExpr
-	<|> (\a c -> (+) a c) <$> pTerm <* pList pSpace <* pOperator "+" <* pList pSpace <*> pAExpr 
+--	<|> (\a c -> (-) a c) <$> pTerm <* pSpaces <* pOperator "-" <* pSpaces <*> pAExpr
+	<|> (\a c -> (+) a c) <$> pTerm <* pSpaces <* pOperator "+" <* pSpaces <*> pAExpr 
 
 pTerm = pFactor
-	<|> (\a c -> div a c) <$> pFactor <* pList pSpace <* pOperator "/" <* pList pSpace <*> pTerm	
-	<|> (\a c -> (*) a c) <$> pFactor <* pList pSpace <* pOperator "*" <* pList pSpace <*> pTerm
+	<|> (\a c -> div a c) <$> pFactor <* pSpaces <* pOperator "/" <* pSpaces <*> pTerm	
+	<|> (\a c -> (*) a c) <$> pFactor <* pSpaces <* pOperator "*" <* pSpaces <*> pTerm
 
 pFactor = pAconst -- <|> pId <|> pApl
 	<|> (\a -> a) <$ pOperator "(" <*> pAExpr <* pOperator ")"
@@ -97,6 +97,8 @@ pBConst = (\(Simbolo Boolean str) -> f str) <$> pSym (Simbolo Boolean "")
 pOperator :: String -> Parser Simbolo String
 pOperator str2 =  (\(Simbolo Operator str) -> str) <$> pSym (Simbolo Operator str2)
 
+pSpaces = pList pSpace
+
 pSpace :: Parser Simbolo String 
 pSpace = (\(Simbolo Space str) -> str) <$> pSym (Simbolo Space " ")
 
@@ -106,19 +108,10 @@ pKeyWord str = (\(Simbolo KeyWord str2)-> str2) <$> pSym (Simbolo KeyWord str)
 pId :: Parser Simbolo String
 pId = (\(Simbolo Id str) -> str) <$> pSym (Simbolo Id "")
 
----Interprete ---
 
-main = do
-	putStr "\nInterprete MiniL  "
-	a <- getLine
-	f a
-f a = if a /= [] then (if  (last a) == ';' then g a else h a) else h a
 
-g a = do 
-	out <- parseIO pRoot (scanner a)
-	out
-	main
 
-h a = do
-	b <- getLine 
-	f (a++b)
+
+			
+
+
