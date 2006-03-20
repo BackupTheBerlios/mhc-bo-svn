@@ -1,4 +1,4 @@
-
+ 
 module Parser (pRoot) where
 
 import UU.Parsing
@@ -43,7 +43,7 @@ pFExpr = () <$> pOperator "\\" *> pList pId <* pOpertator "->" <*> pIExpr
 -- Boolean expresion --
 
 pBExpr = (\a -> a) <$> pBTerm
-	<|> (\a -> a) <$ pKeyWord "NOT"<* pSpaces <*> pBFactor
+	<|> (\a -> not a) <$ pKeyWord "NOT"<* pSpaces <*> pBFactor
 	<|> (\a b -> not a && b) <$ pKeyWord "NOT" <* pSpaces <*> pBFactor <* pSpaces <*  pKeyWord "AND" <* pSpaces <*> pBExpr
     <|> (\a b -> not a || b) <$ pKeyWord "NOT" <* pSpaces <*> pBFactor <* pSpaces <*  pKeyWord "OR" <* pSpaces <*> pBExpr
 
