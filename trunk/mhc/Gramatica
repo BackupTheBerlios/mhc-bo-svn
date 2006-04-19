@@ -1,0 +1,17 @@
+Modulo 				-> moduleDeclaration moduleBody | moduleBody
+moduleDeclaration 	-> module idMayor where
+moduleBody 			-> (dataDeclaration | typeFunction functionDeclaration)*
+dataDeclaration		-> data idMayor = dataConstructor
+dataConstructor 	-> idMayor (|idMayor)*
+functionDeclaration -> idMenor param* = expresion
+param 				-> idMayor | idMenor|literal|operador
+typeFuntion 		-> idMenor :: type (->type)*
+type 				-> idMayor | basicType | idMenor
+basicType 			-> Integer | Char | String | Bool
+literal 			-> litInteger | litString | litChar | litBool
+operador 			-> + | - | ++ | / | * | < | > | >= | <= | && | (||) | == | \=
+expresion 			-> let funtionDelaration (; funtionDeclaration)* in expresion
+					 | case param of (literal-> expresion)+
+					 | (\param* -> expresion)
+					 | literal operador expresion
+					 | literal
